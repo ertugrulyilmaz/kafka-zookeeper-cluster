@@ -1,0 +1,28 @@
+---
+- name: download kafka - {{ kafka_version }}
+  get_url:
+    url: "{{ kafka_download_url }}/{{ kafka_version }}/kafka_{{ kafka_scala_version }}-{{ kafka_version }}.tgz"
+    dest: "{{ kafka_base_directory }}/{{ kafka_tar_file_name }}"
+  register: downloaded
+    
+- name: untar kafka source code
+  unarchive:
+    src: "{{ kafka_base_directory }}/{{ kafka_tar_file_name }}"
+    dest: "{{ kafka_base_directory }}"
+    copy: no
+    group: root
+    owner: root
+
+- name: copy kafka server.properties file
+  template: src=server.properties.j2 dest={{ kafka_base_directory }}/{{ kafka_main_directory_name }}_{{ kafka_scala_version }}-{{ kafka_version }}/config/server.properties
+  with_items: "{{ kafka_parameters }}"
+  when: item.name == inventory_hostname
+
+- name: set KAFKA_HOME
+  shell: "export KAFKA_HOME={{ kafka_base_directory }}/{{ kafka_main_directory_name }}_{{ kafka_scala_version }}-{{ kafka_version }}/"
+
+- name: update PATH
+  shell: "export PATH=$ZK_HOME/bin:$PATH"
+
+- name: run kafka
+  shell: "{{ kafka_base_directory }}/{{ kafka_main_directory_name }}_{{ kafka_scala_version }}-{{ kafka_version }}/bin/kafka-server-start.sh {{ kafka_base_directory }}/{{ kafka_main_directory_name }}_{{ kafka_scala_version }}-{{ kafka_version }}/config/server.properties &"

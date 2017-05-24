@@ -1,0 +1,7 @@
+---
+zookeeper_download_url: http://mirror.idealhosting.net.tr/Apache/zookeeper/zookeeper
+zookeeper_base_directory: /opt
+zookeeper_main_directory_name: zookeeper
+zookeeper_tar_file_name: zookeeper.tar.gz
+zookeeper_version: 3.4.10
+zookeeper_ids: [1, 2, 3]

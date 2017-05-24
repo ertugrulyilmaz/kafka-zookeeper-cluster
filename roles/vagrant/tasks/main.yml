@@ -1,0 +1,38 @@
+# vagrant
+--- 
+- name: create zookeeper directories
+  file: path={{ vagrant_main_directory }}/{{ item.name }} state=directory
+  with_items: "{{ zookeeper_parameters }}"
+
+- name: copy vagrant template for zookeeper
+  template: src=Vagrantfile.j2 dest={{ vagrant_main_directory }}/{{ item.name }}/Vagrantfile
+  with_items: "{{ zookeeper_parameters }}"
+
+- name: vagrant up - zookeeper
+  command: "vagrant up"
+  args:
+    chdir: "{{ vagrant_main_directory }}/{{ item.name }}"
+  with_items: "{{ zookeeper_parameters }}"
+  register: result
+
+- name: create kafka directories
+  file: path={{ vagrant_main_directory }}/{{ item.name }} state=directory
+  with_items: "{{ kafka_parameters }}"
+
+- name: copy vagrant template for kafka
+  template: src=Vagrantfile.j2 dest={{ vagrant_main_directory }}/{{ item.name }}/Vagrantfile
+  with_items: "{{ kafka_parameters }}"
+  
+- name: vagrant up - kafka
+  command: "vagrant up"
+  args:
+    chdir: "{{ vagrant_main_directory }}/{{ item.name }}"
+  with_items: "{{ kafka_parameters }}"
+  register: result
+  
+# - name: vagrant destroy - zookeeper
+#   shell: |
+#     cd {{ vagrant_main_directory }}/{{ item.name }}
+#     vagrant destroy -f
+#     exit 0
+#   with_items: "{{ zookeeper_parameters }}"

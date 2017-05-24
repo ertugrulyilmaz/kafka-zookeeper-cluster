@@ -1,0 +1,7 @@
+---
+kafka_download_url: https://archive.apache.org/dist/kafka
+kafka_scala_version: 2.12
+kafka_version: 0.10.2.1
+kafka_base_directory: /opt
+kafka_main_directory_name: kafka
+kafka_tar_file_name: kafka.tar.gz

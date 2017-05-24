@@ -1,0 +1,41 @@
+---
+- name: download zookeeper - {{ zookeeper_version }}
+  get_url:
+    url: "{{ zookeeper_download_url }}-{{ zookeeper_version }}/zookeeper-{{ zookeeper_version }}.tar.gz"
+    dest: "{{ zookeeper_base_directory }}/{{ zookeeper_tar_file_name }}"
+  register: downloaded
+    
+- name: untar zookeeper source code
+  unarchive:
+    src: "{{ zookeeper_base_directory }}/{{ zookeeper_tar_file_name }}"
+    dest: "{{ zookeeper_base_directory }}"
+    copy: no
+    group: root
+    owner: root
+
+- name: copy zookeeper config file
+  template: src=zoo.cfg.j2 dest={{ zookeeper_base_directory }}/{{ zookeeper_main_directory_name }}-{{ zookeeper_version }}/conf/zoo.cfg
+
+- name: create zookeeper data directory
+  file:
+    path: "{{ zookeeper_base_directory }}/{{ zookeeper_main_directory_name }}-{{ zookeeper_version }}/data"
+    state: directory
+
+- name: create myid file
+  file:
+    path: "{{ zookeeper_base_directory }}/{{ zookeeper_main_directory_name }}-{{ zookeeper_version }}/data/myid"
+    state: touch
+    
+- name: set myid file
+  shell: "echo '{{ item.id }}' > {{ zookeeper_base_directory }}/{{ zookeeper_main_directory_name }}-{{ zookeeper_version }}/data/myid"
+  with_items: "{{ zookeeper_parameters }}"
+  when: item.name == inventory_hostname
+
+- name: set ZK_HOME
+  shell: "export ZK_HOME={{ zookeeper_base_directory }}/{{ zookeeper_main_directory_name }}-{{ zookeeper_version }}/"
+
+- name: update PATH
+  shell: "export PATH=$ZK_HOME/bin:$PATH"
+
+- name: run zookeeper
+  shell: "{{ zookeeper_base_directory }}/{{ zookeeper_main_directory_name }}-{{ zookeeper_version }}/bin/zkServer.sh start"

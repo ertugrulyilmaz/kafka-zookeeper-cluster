@@ -1,0 +1,27 @@
+# main.yml
+---
+- name: create vagrant instances
+  hosts: localhost
+  connection: local
+  roles:
+    - vagrant
+
+- name: create zookeeper cluster
+  hosts: zookeeper
+  remote_user: ubuntu
+  become: true
+  gather_facts: False
+  roles:
+    - python2
+    - java8
+    - zookeeper
+    
+- name: create kafka cluster
+  hosts: kafka
+  remote_user: ubuntu
+  become: true
+  gather_facts: False
+  roles:
+    - python2
+    - java8
+    - kafka 

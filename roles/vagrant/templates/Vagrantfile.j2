@@ -1,0 +1,44 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "{{ vagrant_version }}"
+  
+  # configure {{ item.name }} cluster
+  config.vm.define "{{ item.name }}" do |s|
+    s.vm.hostname = "{{ item.name }}"
+    s.vm.network "private_network", ip: "{{ item.ip }}", netmask: "255.255.0.0", virtualbox__intnet: "kafka-cluster-network", drop_nat_interface_default_route: true
+    s.vm.network :forwarded_port, guest: 22, host: 2222, id: "ssh", disabled: true
+    s.vm.network :forwarded_port, guest: 22, host: {{ item.ssh_port }}, auto_correct: true
+  end
+  
+  private_key_path = "{{ base_directory }}/roles/vagrant/files/vagrant_private_keys"
+  public_key_path = "{{ base_directory }}/roles/vagrant/files/vagrant_public_keys"
+  insecure_key_path = "~/.vagrant.d/insecure_private_key"
+
+  private_key = IO.read(private_key_path)
+  public_key = IO.read(public_key_path)
+
+  config.ssh.insert_key = false
+  config.ssh.private_key_path = [
+    private_key_path,
+    insecure_key_path # to provision the first time
+  ]
+
+  config.vm.provision :shell, :inline => <<-SCRIPT
+    set -e
+
+    echo '#{private_key}' > /home/ubuntu/.ssh/id_rsa
+    chmod 600 /home/ubuntu/.ssh/id_rsa
+
+    echo '#{public_key}' > /home/ubuntu/.ssh/authorized_keys
+    chmod 600 /home/ubuntu/.ssh/authorized_keys
+  SCRIPT
+  
+  config.vm.provider "virtualbox" do |vb|
+    vb.gui = false
+    vb.memory = "384"
+    vb.cpus = 1
+  end
+end
